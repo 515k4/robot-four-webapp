@@ -13,14 +13,22 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
 
 account_url = "https://robotfoursbxeuw.blob.core.windows.net"
-container_name = "stblc-robot-four-processed-sbx-euw-01"
-preprocessed_dir = Path("/mnt/robotfoursbxeuw/stfss-robot-four-share-sbx-euw-01")
+upload_container = "stblc-robot-four-upload-sbx-euw-01"
+processed_container = "stblc-robot-four-processed-sbx-euw-01"
+
+
+def list_processes_blobs():
+    default_credential = DefaultAzureCredential()
+    with BlobServiceClient(account_url, credential=default_credential) as blob_client:
+        with blob_client.get_container_client(processed_container) as container_client:
+            for blob in container_client.list_blobs("post_"):
+                yield blob.name
 
 
 def fake_upload(blob_name):
     default_credential = DefaultAzureCredential()
     with BlobServiceClient(account_url, credential=default_credential) as blob_client:
-        with blob_client.get_container_client(container_name) as container_client:
+        with blob_client.get_container_client(upload_container) as container_client:
             print(f"Fake uploading {blob_name}...")
             container_client.upload_blob(blob_name, "random data", overwrite=True)
 
@@ -28,7 +36,10 @@ def fake_upload(blob_name):
 @app.get("/", response_class=HTMLResponse)
 async def index(request: Request):
     print("Request for index page received")
-    return templates.TemplateResponse("index.html", {"request": request})
+    blobs = list(list_processes_blobs())
+    return templates.TemplateResponse(
+        "index.html", {"request": request, "processes_blobs": blobs}
+    )
 
 
 @app.get("/favicon.ico")
@@ -47,8 +58,7 @@ async def hello(request: Request, name: str = Form(...)):
         sanitize_name = name.replace(" ", "_")[:64]
         fake_upload(sanitize_name)
         return templates.TemplateResponse(
-            "hello.html",
-            {"request": request, "name": name, "sanitize_name": sanitize_name},
+            "hello.html", {"request": request, "name": name}
         )
     else:
         print(
