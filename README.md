@@ -1,39 +1,50 @@
----
-page_type: sample
-description: "A minimal sample app that can be used to demonstrate deploying FastAPI apps to Azure App Service."
-languages:
-- python
-products:
-- azure
-- azure-app-service
----
+# Robot Dreams Azure Lesson 4
 
-# Deploy a Python (FastAPI) web app to Azure App Service - Sample Application
+## Virtual Machines
 
-This is the sample FastAPI application for the Azure Quickstart [Deploy a Python (Django, Flask or FastAPI) web app to Azure App Service](https://docs.microsoft.com/en-us/azure/app-service/quickstart-python). For instructions on how to create the Azure resources and deploy the application to Azure, refer to the Quickstart article.
+There are 2 VMs crated via Azure Portal with this settings:
 
-Sample applications are available for the other frameworks here:
-- Django [https://github.com/Azure-Samples/msdocs-python-django-webapp-quickstart](https://github.com/Azure-Samples/msdocs-python-django-webapp-quickstart)
-- Flask [https://github.com/Azure-Samples/msdocs-python-flask-webapp-quickstart](https://github.com/Azure-Samples/msdocs-python-flask-webapp-quickstart)
+- *OS:* Linux (opensuse-leap 15.6)
+- *Size:* Standard B2s (2 vcpus, 4 GiB memory)
+- *Disk:* Premium SSD LRS 32GiB
+- Enabled system assigned managed identity
+- Public IP
+- Login via SSH private key
+- Backup policy: TBD
 
-If you need an Azure account, you can [create one for free](https://azure.microsoft.com/en-us/free/).
+## Storage account
 
-## Local Testing
+There is 1 Storage Account with this settings:
+- Container for *upload* data
+- Container for *processed* data
+- File Share for *sharing* files between two VMs [using statically mounted SMB](https://learn.microsoft.com/en-us/azure/storage/files/storage-how-to-use-files-linux?tabs=SLES%2Csmb311).
+- Access Control: Storage Blob Data Contributor for both VMs and Web App
+- Access Control: Storage File Data SMB Share Contributor for both VMs (is it needed?)
+- Lifecycle: TBD
+- Optimalization: Hot, Cold, Archive TBD
 
-To try the application on your local machine:
+## Web App
 
-### Install the requirements
+This is a fork of sample FastAPI application for the Azure Quickstart [Deploy a
+Python (Django, Flask or FastAPI) web app to Azure App
+Service](https://docs.microsoft.com/en-us/azure/app-service/quickstart-python).
+For instructions on how to create the Azure resources and deploy the application
+to Azure, refer to the Quickstart article.
 
-`pip install -r requirements.txt`
+Application is deployed from local Git using Azure CLI.
 
-### Start the application
+## Backend Custom Scripts
 
-`uvicorn main:app --reload`
+[Azure Blob Storage client library for Python](https://learn.microsoft.com/en-us/azure/storage/blobs/storage-quickstart-blobs-python?tabs=managed-identity%2Croles-azure-portal%2Csign-in-azure-cli&pivots=blob-storage-quickstart-scratch)
 
-### Example call
+There are two Python script, each one running as systemd service on its own VM.
 
-http://127.0.0.1:8000/
+See `backend` directory.
+
+## How to test it
+
+Open Web App url, create a file. Wait few minutes and reload the page to see file in processed table.
 
 ## Next Steps
 
-To learn more about FastAPI, see [FastAPI](https://fastapi.tiangolo.com/).
+- Login to VMs using [AADSSHLogin on openSUSE](https://learn.microsoft.com/en-us/entra/identity/devices/howto-vm-sign-in-azure-ad-linux)

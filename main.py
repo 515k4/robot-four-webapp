@@ -1,34 +1,63 @@
+from pathlib import Path
+
+import uvicorn
+from azure.identity import DefaultAzureCredential
+from azure.storage.blob import BlobClient, BlobServiceClient, ContainerClient
 from fastapi import FastAPI, Form, Request, status
-from fastapi.responses import HTMLResponse, FileResponse, RedirectResponse
+from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-import uvicorn
-
 
 app = FastAPI()
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
 
+account_url = "https://robotfoursbxeuw.blob.core.windows.net"
+container_name = "stblc-robot-four-processed-sbx-euw-01"
+preprocessed_dir = Path("/mnt/robotfoursbxeuw/stfss-robot-four-share-sbx-euw-01")
+
+
+def fake_upload(blob_name):
+    default_credential = DefaultAzureCredential()
+    with BlobServiceClient(account_url, credential=default_credential) as blob_client:
+        with blob_client.get_container_client(container_name) as container_client:
+            print(f"Fake uploading {blob_name}...")
+            container_client.upload_blob(blob_name, "random data", overwrite=True)
+
+
 @app.get("/", response_class=HTMLResponse)
 async def index(request: Request):
-    print('Request for index page received')
-    return templates.TemplateResponse('index.html', {"request": request})
+    print("Request for index page received")
+    return templates.TemplateResponse("index.html", {"request": request})
 
-@app.get('/favicon.ico')
+
+@app.get("/favicon.ico")
 async def favicon():
-    file_name = 'favicon.ico'
-    file_path = './static/' + file_name
-    return FileResponse(path=file_path, headers={'mimetype': 'image/vnd.microsoft.icon'})
+    file_name = "favicon.ico"
+    file_path = "./static/" + file_name
+    return FileResponse(
+        path=file_path, headers={"mimetype": "image/vnd.microsoft.icon"}
+    )
 
-@app.post('/hello', response_class=HTMLResponse)
+
+@app.post("/hello", response_class=HTMLResponse)
 async def hello(request: Request, name: str = Form(...)):
     if name:
-        print('Request for hello page received with name=%s' % name)
-        return templates.TemplateResponse('hello.html', {"request": request, 'name':name})
+        print("Request for hello page received with name=%s" % name)
+        sanitize_name = name.replace(" ", "_")[:64]
+        fake_upload(sanitize_name)
+        return templates.TemplateResponse(
+            "hello.html",
+            {"request": request, "name": name, "sanitize_name": sanitize_name},
+        )
     else:
-        print('Request for hello page received with no name or blank name -- redirecting')
-        return RedirectResponse(request.url_for("index"), status_code=status.HTTP_302_FOUND)
+        print(
+            "Request for hello page received with no name or blank name -- redirecting"
+        )
+        return RedirectResponse(
+            request.url_for("index"), status_code=status.HTTP_302_FOUND
+        )
 
-if __name__ == '__main__':
-    uvicorn.run('main:app', host='0.0.0.0', port=8000)
 
+if __name__ == "__main__":
+    uvicorn.run("main:app", host="0.0.0.0", port=8000)

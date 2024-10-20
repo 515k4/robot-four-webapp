@@ -1,0 +1,9 @@
+[Unit]
+Description=Pre-processing daemon
+
+[Service]
+Type=exec
+ExecStart=/opt/robot-four/robot-four-init.py
+
+[Install]
+WantedBy=multi-user.target
