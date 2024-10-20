@@ -33,6 +33,10 @@ to Azure, refer to the Quickstart article.
 
 Application is deployed from local Git using Azure CLI.
 
+If Storage networking is enabled from selected virtual networks and IP addresses
+only, you need to allow outbound public IP addresses or make the virtual network
+integration and add subnet to allowed subnets.
+
 ## Backend Custom Scripts
 
 [Azure Blob Storage client library for Python](https://learn.microsoft.com/en-us/azure/storage/blobs/storage-quickstart-blobs-python?tabs=managed-identity%2Croles-azure-portal%2Csign-in-azure-cli&pivots=blob-storage-quickstart-scratch)
