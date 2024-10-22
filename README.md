@@ -10,7 +10,7 @@ There are 2 VMs crated via Azure Portal with this settings:
 - Enabled system assigned managed identity
 - Public IP
 - Login via SSH private key
-- Backup policy: TBD
+- Backup policy: Every 4 hours between 10:00 and 22:00.
 
 ## Storage account
 
@@ -20,8 +20,8 @@ There is 1 Storage Account with this settings:
 - File Share for *sharing* files between two VMs [using statically mounted SMB](https://learn.microsoft.com/en-us/azure/storage/files/storage-how-to-use-files-linux?tabs=SLES%2Csmb311).
 - Access Control: Storage Blob Data Contributor for both VMs and Web App
 - Access Control: Storage File Data SMB Share Contributor for both VMs (is it needed?)
-- Lifecycle: TBD
-- Optimalization: Hot, Cold, Archive TBD
+- Lifecycle: Hot-to-Cool after 7 days, Cool-to-cold after 30 days, Cold-to-delete after 90 days
+- Security Networking: Enabled from selected virtual networks and IP addresses, added subnets for VMs and Web App
 
 ## Web App
 
